@@ -14,6 +14,8 @@ namespace CoinMarketCap.Application.Cryptocurrency.Queries.GetCryptocurrencyQuot
 {
     public class GetCryptocurrencyQuotesQuery : IRequest<IEnumerable<CryptocurrencyInfoDto>>
     {
+        public int Offset { get; set; }
+        public int Limit { get; set; }
     }
 
     public class GetCryptocurrencyQuotesQueryHandler
@@ -31,19 +33,20 @@ namespace CoinMarketCap.Application.Cryptocurrency.Queries.GetCryptocurrencyQuot
         public async Task<IEnumerable<CryptocurrencyInfoDto>> Handle(GetCryptocurrencyQuotesQuery request,
             CancellationToken cancellationToken)
         {
-            var listingsLatest = await GetListingsLatestDto(cancellationToken);
+            var listingsLatest = await GetListingsLatestDto(request, cancellationToken);
             var metadata = await GetMetadata(listingsLatest.Data.Select(i => i.Id), cancellationToken);
 
             return listingsLatest.Data.Select(i => Map(i, metadata)).ToList();
         }
 
-        private async Task<ListingsLatestDto> GetListingsLatestDto(CancellationToken cancellationToken)
+        private async Task<ListingsLatestDto> GetListingsLatestDto(GetCryptocurrencyQuotesQuery request,
+            CancellationToken cancellationToken)
         {
             var uriBuilder = new UriBuilder("https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest");
 
             var queryString = HttpUtility.ParseQueryString(string.Empty);
-            queryString["start"] = "1";
-            queryString["limit"] = "50";
+            queryString["start"] = (request.Offset + 1).ToString();
+            queryString["limit"] = request.Limit.ToString();
             queryString["convert"] = "USD";
 
             uriBuilder.Query = queryString.ToString();

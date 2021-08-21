@@ -11,7 +11,8 @@ namespace CoinMarketCap.WebUI.Controllers
     public class CryptocurrencyController : MediatorController
     {
         [HttpGet]
-        public async Task<IEnumerable<CryptocurrencyInfoDto>> GetCryptocurrencyQuotes()
-            => await Mediator.Send(new GetCryptocurrencyQuotesQuery());
+        public async Task<IEnumerable<CryptocurrencyInfoDto>> GetCryptocurrencyQuotes(
+            [FromQuery] GetCryptocurrencyQuotesQuery query)
+            => await Mediator.Send(query);
     }
 }

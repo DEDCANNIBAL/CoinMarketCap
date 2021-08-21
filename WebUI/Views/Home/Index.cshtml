@@ -26,6 +26,9 @@
                 </tr>
             </thead>
         </table>
+        <div id="toolbar">
+            <button id="button" class="btn btn-secondary" style="margin-top:1%;">Load More</button>
+        </div>
     }
     else
     {
@@ -35,18 +38,44 @@
 
 @section scripts{
     <script>
-        var moneyFormatter = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        });
+        let filters = {
+            offset: 0,
+            limit: 20
+        };
 
         function dataRequest(params) {
-            var url = '/api/Cryptocurrency/GetCryptocurrencyQuotes'
-            $.get(url)
+            filters.offset = 0;
+            getData()
                 .then(function (res) {
                     params.success({ rows: res });
                 });
         }
+
+        $(document).ready(() => {
+            $('#button').click(function () {
+                getData()
+                    .then(function (res) {
+                        $('#table').bootstrapTable('append', res);
+                    });
+            })
+        });
+
+        function getData() {
+            const url = '/api/Cryptocurrency/GetCryptocurrencyQuotes'
+            const data = {
+                offset: filters.offset,
+                limit: filters.limit
+            };
+
+            filters.offset += filters.limit;
+
+            return $.get(url, data);
+        }
+
+        const moneyFormatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        });
 
         function logoFormatter(value) {
             return `<img src=${value} alt="" width="32" height="32"/>`;
