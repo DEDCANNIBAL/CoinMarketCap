@@ -3,8 +3,10 @@ using CoinMarketCap.Application.Common.Interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +18,8 @@ namespace CoinMarketCap.Application.Cryptocurrency.Queries.GetCryptocurrencyQuot
     {
         public int Offset { get; set; }
         public int Limit { get; set; }
+        public string SortField { get; set; }
+        public bool IsSortAscending { get; set; }
     }
 
     public class GetCryptocurrencyQuotesQueryHandler
@@ -33,13 +37,15 @@ namespace CoinMarketCap.Application.Cryptocurrency.Queries.GetCryptocurrencyQuot
         public async Task<IEnumerable<CryptocurrencyInfoDto>> Handle(GetCryptocurrencyQuotesQuery request,
             CancellationToken cancellationToken)
         {
-            var listingsLatest = await GetListingsLatestDto(request, cancellationToken);
+            var listingsLatest = await GetListingsLatest(request, cancellationToken);
             var metadata = await GetMetadata(listingsLatest.Data.Select(i => i.Id), cancellationToken);
 
-            return listingsLatest.Data.Select(i => Map(i, metadata)).ToList();
+            return listingsLatest.Data
+                .Select(i => Map(i, metadata))
+                .ToList();
         }
 
-        private async Task<ListingsLatestDto> GetListingsLatestDto(GetCryptocurrencyQuotesQuery request,
+        private async Task<ListingsLatestDto> GetListingsLatest(GetCryptocurrencyQuotesQuery request,
             CancellationToken cancellationToken)
         {
             var uriBuilder = new UriBuilder("https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest");
@@ -48,12 +54,27 @@ namespace CoinMarketCap.Application.Cryptocurrency.Queries.GetCryptocurrencyQuot
             queryString["start"] = (request.Offset + 1).ToString();
             queryString["limit"] = request.Limit.ToString();
             queryString["convert"] = "USD";
+            AddSortToQuery(queryString, request);
 
             uriBuilder.Query = queryString.ToString();
 
             var json = await MakeApiCall(uriBuilder.ToString(), cancellationToken);
 
             return JsonSerializer.Deserialize<ListingsLatestDto>(json);
+        }
+
+        private static void AddSortToQuery(NameValueCollection queryString, GetCryptocurrencyQuotesQuery request)
+        {
+            if (string.IsNullOrEmpty(request.SortField))
+                return;
+
+            var sortField = typeof(CryptocurrencyInfoDto)
+                .GetProperty(char.ToUpper(request.SortField[0]) + request.SortField[1..])
+                .GetCustomAttribute<SortPropertyNameAttribute>()
+                .Name;
+
+            queryString["sort"] = sortField;
+            queryString["sort_dir"] = request.IsSortAscending ? "asc" : "desc";
         }
 
         private async Task<MetadataDto> GetMetadata(IEnumerable<int> ids, CancellationToken cancellationToken)

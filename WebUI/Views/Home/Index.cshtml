@@ -16,12 +16,12 @@
             <thead>
                 <tr>
                     <th data-field="logo" data-formatter="logoFormatter">Logo</th>
-                    <th data-field="name">Name</th>
-                    <th data-field="symbol">Symbol</th>
-                    <th data-field="marketCap" data-formatter="priceFormatter">Market Cap</th>
-                    <th data-field="price" data-formatter="priceFormatter">Price</th>
-                    <th data-field="percentChange1h" data-formatter="percentChangeFormatter">% 1h</th>
-                    <th data-field="percentChange24h" data-formatter="percentChangeFormatter">% 24h</th>
+                    <th data-field="name" data-sortable="true">Name</th>
+                    <th data-field="symbol" data-sortable="true">Symbol</th>
+                    <th data-field="marketCap" data-sortable="true" data-formatter="priceFormatter">Market Cap</th>
+                    <th data-field="price" data-sortable="true" data-formatter="priceFormatter">Price</th>
+                    <th data-field="percentChange1h" data-sortable="true" data-formatter="percentChangeFormatter">% 1h</th>
+                    <th data-field="percentChange24h" data-sortable="true" data-formatter="percentChangeFormatter">% 24h</th>
                     <th data-field="lastUpdated" data-formatter="dateFormatter">Last Updated</th>
                 </tr>
             </thead>
@@ -40,11 +40,17 @@
     <script>
         let filters = {
             offset: 0,
-            limit: 20
+            limit: 20,
+            sortField: null,
+            isSortAscending: false
         };
 
         function dataRequest(params) {
+            console.log(params);
             filters.offset = 0;
+            filters.sortField = params.data.sort;
+            filters.isSortAscending = params.data.order === "asc";
+            console.log(filters);
             getData()
                 .then(function (res) {
                     params.success({ rows: res });
@@ -62,10 +68,7 @@
 
         function getData() {
             const url = '/api/Cryptocurrency/GetCryptocurrencyQuotes'
-            const data = {
-                offset: filters.offset,
-                limit: filters.limit
-            };
+            const data = {...filters};
 
             filters.offset += filters.limit;
 
