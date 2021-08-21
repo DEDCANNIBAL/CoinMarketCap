@@ -46,11 +46,10 @@
         };
 
         function dataRequest(params) {
-            console.log(params);
             filters.offset = 0;
             filters.sortField = params.data.sort;
             filters.isSortAscending = params.data.order === "asc";
-            console.log(filters);
+
             getData()
                 .then(function (res) {
                     params.success({ rows: res });
