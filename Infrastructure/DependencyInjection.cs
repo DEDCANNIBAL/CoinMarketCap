@@ -1,6 +1,7 @@
 ﻿using CoinMarketCap.Application.Common.Interfaces;
 using CoinMarketCap.Domain.Identity.Entities;
 using CoinMarketCap.Infrastructure.Persistence;
+using CoinMarketCap.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +45,7 @@ namespace CoinMarketCap.Infrastructure
 
         private static IServiceCollection AddCustomServices(this IServiceCollection services)
         {
+            services.AddScoped<ICoinMarketCapService, CoinMarketCapService>();
 
             return services;
         }
