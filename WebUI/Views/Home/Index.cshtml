@@ -2,6 +2,66 @@
     ViewData["Title"] = "Home Page";
 }
 
+@inject SignInManager<ApplicationUser> SignInManager
+
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <h2>Cryptocurrency Quotes</h2>
+        <table id="table"
+               data-toggle="table"
+               data-ajax="dataRequest"
+               data-side-pagination="server"
+               data-pagination="false">
+            <thead>
+                <tr>
+                    <th data-field="logo" data-formatter="logoFormatter">Logo</th>
+                    <th data-field="name">Name</th>
+                    <th data-field="symbol">Symbol</th>
+                    <th data-field="marketCap" data-formatter="priceFormatter">Market Cap</th>
+                    <th data-field="price" data-formatter="priceFormatter">Price</th>
+                    <th data-field="percentChange1h" data-formatter="percentChangeFormatter">% 1h</th>
+                    <th data-field="percentChange24h" data-formatter="percentChangeFormatter">% 24h</th>
+                    <th data-field="lastUpdated" data-formatter="dateFormatter">Last Updated</th>
+                </tr>
+            </thead>
+        </table>
+    }
+    else
+    {
+        <h1 class="display-4">Welcome</h1>
+    }
 </div>
+
+@section scripts{
+    <script>
+        var moneyFormatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        });
+
+        function dataRequest(params) {
+            var url = '/api/Cryptocurrency/GetCryptocurrencyQuotes'
+            $.get(url)
+                .then(function (res) {
+                    params.success({ rows: res });
+                });
+        }
+
+        function logoFormatter(value) {
+            return `<img src=${value} alt="" width="32" height="32"/>`;
+        }
+
+        function priceFormatter(value) {
+            return moneyFormatter.format(value);
+        }
+
+        function percentChangeFormatter(value) {
+            return parseFloat(value).toFixed(2) + "%";
+        }
+
+        function dateFormatter(value) {
+            return new Date(value).toUTCString();
+        }
+    </script>
+}
