@@ -50,28 +50,27 @@
             filters.sortField = params.data.sort;
             filters.isSortAscending = params.data.order === "asc";
 
-            getData()
-                .then(function (res) {
-                    params.success({ rows: res });
-                });
+            getData((res) => params.success({ rows: res }));
         }
 
         $(document).ready(() => {
             $('#button').click(function () {
-                getData()
-                    .then(function (res) {
-                        $('#table').bootstrapTable('append', res);
-                    });
+                getData((res) => $('#table').bootstrapTable('append', res));
             })
         });
 
-        function getData() {
+        function getData(processResultCallback) {
             const url = '/api/Cryptocurrency/GetCryptocurrencyQuotes'
-            const data = {...filters};
+            const data = { ...filters };
 
             filters.offset += filters.limit;
 
-            return $.get(url, data);
+            $('.spinner').css('display', 'block');
+            $.get(url, data)
+                .then((res) => {
+                    processResultCallback(res);
+                    $('.spinner').css('display', 'none');
+                });
         }
 
         const moneyFormatter = new Intl.NumberFormat('en-US', {
