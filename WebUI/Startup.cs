@@ -38,14 +38,11 @@ namespace CoinMarketCap.WebUI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-                app.UseDeveloperExceptionPage();
-            else
-            {
-                app.UseCustomExceptionHandler();
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseCustomExceptionHandler();
+
+            if (!env.IsDevelopment())
                 app.UseHsts();
-            }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
